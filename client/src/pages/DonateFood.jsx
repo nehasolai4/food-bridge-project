@@ -8,7 +8,6 @@ const DonateFood = () => {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
 
-  // ✅ FORM STATE
   const [form, setForm] = useState({
     title: "",
     quantity: "",
@@ -22,19 +21,19 @@ const DonateFood = () => {
     description: ""
   });
 
-  // ✅ HANDLE IMAGE
+  // IMAGE HANDLER
   const handleImage = (e) => {
     const file = e.target.files[0];
     setImage(file);
     setPreview(URL.createObjectURL(file));
   };
 
-  // ✅ HANDLE INPUT CHANGE (for normal fields)
+  // NORMAL INPUTS
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  // ✅ HANDLE LOCATION CHANGE (IMPORTANT)
+  // LOCATION INPUTS
   const handleLocationChange = (e) => {
     setForm({
       ...form,
@@ -45,36 +44,44 @@ const DonateFood = () => {
     });
   };
 
-  // ✅ SUBMIT TO BACKEND
+  // 🔥 SUBMIT (UPDATED)
   const handleSubmit = (e) => {
-  e.preventDefault();
+    e.preventDefault();
 
-  const formData = new FormData();
+    const formData = new FormData();
 
-  formData.append("title", form.title);
-  formData.append("quantity", form.quantity);
-  formData.append("expiry", form.expiry);
-  formData.append("donor", form.donor);
-  formData.append("description", form.description);
+    // 🔥 GET LOGGED-IN USER
+    const user = JSON.parse(localStorage.getItem("user"));
 
-  // location (stringify object)
-  formData.append("location", JSON.stringify(form.location));
+    // 🔥 ADD DONOR ID (IMPORTANT)
+    formData.append("donorId", user.id);
 
-  // image
-  if (image) {
-    formData.append("image", image);
-  }
+    // FORM DATA
+    formData.append("title", form.title);
+    formData.append("quantity", form.quantity);
+    formData.append("expiry", form.expiry);
+    formData.append("donor", form.donor);
+    formData.append("description", form.description);
 
-  fetch("http://localhost:5000/api/food/add", {
-    method: "POST",
-    body: formData
-  })
-    .then(res => res.json())
-    .then(() => {
-      alert("Food posted!");
-      navigate("/find-food");
-    });
-};
+    // LOCATION
+    formData.append("location", JSON.stringify(form.location));
+
+    // IMAGE
+    if (image) {
+      formData.append("image", image);
+    }
+
+    fetch("http://localhost:5000/api/food/add", {
+      method: "POST",
+      body: formData
+    })
+      .then(res => res.json())
+      .then(() => {
+        alert("Food posted!");
+        navigate("/find-food");
+      })
+      .catch(err => console.log(err));
+  };
 
   return (
     <div className="donate-container">
@@ -122,8 +129,7 @@ const DonateFood = () => {
             required
           />
 
-          {/* 🔥 LOCATION (FIXED PROPERLY) */}
-
+          {/* LOCATION */}
           <input
             type="text"
             name="city"
@@ -146,7 +152,7 @@ const DonateFood = () => {
             onChange={handleLocationChange}
           />
 
-          {/* DONOR */}
+          {/* CONTACT */}
           <input
             type="text"
             name="donor"

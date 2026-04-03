@@ -1,11 +1,13 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import "./Auth.css";
-import { useNavigate } from "react-router-dom";
 
 const Signup = () => {
   const navigate = useNavigate();
   const [role, setRole] = useState("donor");
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -13,113 +15,277 @@ const Signup = () => {
     password: ""
   });
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+  const validateForm = () => {
+    const newErrors = {};
+    
+    if (!formData.name.trim()) {
+      newErrors.name = "Full name is required";
+    } else if (formData.name.trim().length < 2) {
+      newErrors.name = "Name must be at least 2 characters";
+    }
+
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email is invalid";
+    }
+
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length < 6) {
+      newErrors.password = "Password must be at least 6 characters";
+    }
+
+    return newErrors;
   };
 
-const handleSubmit = async (e) => {
-  e.preventDefault();
-
-  try {
-    const res = await fetch("http://localhost:5000/api/auth/signup", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        name: formData.name,
-        email: formData.email,
-        password: formData.password,
-        role: role
-      })
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
     });
 
-    const data = await res.json();
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors({
+        ...errors,
+        [name]: ""
+      });
+    }
+  };
 
-    if (!res.ok) {
-      alert(data.message);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setErrors({});
+
+    const formErrors = validateForm();
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
       return;
     }
 
-    alert("Signup successful!");
-    navigate("/login");   // 🔥 THIS LINE
+    setLoading(true);
 
-  } catch (err) {
-    console.log(err);
-  }
-};
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/signup", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          password: formData.password,
+          role: role
+        })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setErrors({ submit: data.message || "Signup failed" });
+        setLoading(false);
+        return;
+      }
+
+      // Success - redirect to login
+      setTimeout(() => {
+        navigate("/login");
+      }, 500);
+
+    } catch (err) {
+      console.log(err);
+      setErrors({ submit: "Server error. Please try again." });
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="auth-wrapper">
 
       {/* LEFT PANEL */}
-      <div className="auth-left">
+      <div className="auth-left signup-left">
         <div className="overlay">
-          <h1>Welcome</h1>
-          <p>Join us and make a difference 🌱</p>
+          <div className="overlay-content">
+            <h1 className="overlay-title">
+              <span className="title-emoji">🌱</span>
+              Join Us Today
+            </h1>
+            <p className="overlay-subtitle">
+              Create an account to start making a positive impact in your community
+            </p>
+
+            <div className="overlay-features">
+              <div className="feature-item">
+                <span className="feature-icon">🤝</span>
+                <span>Connect with community</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">💚</span>
+                <span>Reduce food waste</span>
+              </div>
+              <div className="feature-item">
+                <span className="feature-icon">🎯</span>
+                <span>Create real impact</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
       {/* RIGHT PANEL */}
       <div className="auth-right">
         <div className="auth-card">
-          <h2>Create Account</h2>
-
-          {/* ROLE TOGGLE */}
-          <div className="role-toggle">
-            <button
-              type="button"
-              className={role === "donor" ? "active" : ""}
-              onClick={() => setRole("donor")}
-            >
-              Donor
-            </button>
-
-            <button
-              type="button"
-              className={role === "acceptor" ? "active" : ""}
-              onClick={() => setRole("acceptor")}
-            >
-              Acceptor
-            </button>
+          <div className="card-header">
+            <h2>Create Account</h2>
+            <p className="card-subtitle">Sign up as a donor or acceptor</p>
           </div>
 
-          <form onSubmit={handleSubmit}>
-            <input
-              type="text"
-              name="name"
-              placeholder="Full Name"
-              required
-              onChange={handleChange}
-            />
+          {/* ROLE TOGGLE */}
+          <div className="role-selection">
+            <label className="role-label">Choose your role:</label>
+            <div className="role-toggle">
+              <button
+                type="button"
+                className={`role-btn ${role === "donor" ? "active" : ""}`}
+                onClick={() => setRole("donor")}
+              >
+                <span className="role-icon">📦</span>
+                <span className="role-text">Donor</span>
+              </button>
 
-            <input
-              type="email"
-              name="email"
-              placeholder="Email"
-              required
-              onChange={handleChange}
-            />
+              <button
+                type="button"
+                className={`role-btn ${role === "acceptor" ? "active" : ""}`}
+                onClick={() => setRole("acceptor")}
+              >
+                <span className="role-icon">🤝</span>
+                <span className="role-text">Acceptor</span>
+              </button>
+            </div>
+          </div>
 
-            <input
-              type="password"
-              name="password"
-              placeholder="Password"
-              required
-              onChange={handleChange}
-            />
+          <form onSubmit={handleSubmit} noValidate>
+            {/* ERROR MESSAGE */}
+            {errors.submit && (
+              <div className="error-message error-submit">
+                <span className="error-icon">⚠️</span>
+                {errors.submit}
+              </div>
+            )}
 
-            <button type="submit" className="submit-btn">
-              Create Account
+            {/* NAME FIELD */}
+            <div className="form-group">
+              <label className="form-label">
+                <span className="label-icon">👤</span>
+                Full Name
+              </label>
+              <div className="input-wrapper">
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Enter your full name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  className={`form-input ${errors.name ? "input-error" : ""}`}
+                />
+                {formData.name && !errors.name && <span className="input-valid">✓</span>}
+              </div>
+              {errors.name && (
+                <span className="error-text">
+                  <span className="error-dot">●</span>
+                  {errors.name}
+                </span>
+              )}
+            </div>
+
+            {/* EMAIL FIELD */}
+            <div className="form-group">
+              <label className="form-label">
+                <span className="label-icon">📧</span>
+                Email Address
+              </label>
+              <div className="input-wrapper">
+                <input
+                  type="email"
+                  name="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  className={`form-input ${errors.email ? "input-error" : ""}`}
+                />
+                {formData.email && !errors.email && <span className="input-valid">✓</span>}
+              </div>
+              {errors.email && (
+                <span className="error-text">
+                  <span className="error-dot">●</span>
+                  {errors.email}
+                </span>
+              )}
+            </div>
+
+            {/* PASSWORD FIELD */}
+            <div className="form-group">
+              <label className="form-label">
+                <span className="label-icon">🔒</span>
+                Password
+              </label>
+              <div className="input-wrapper">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  placeholder="Create a strong password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  className={`form-input ${errors.password ? "input-error" : ""}`}
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label="Toggle password visibility"
+                >
+                  {showPassword ? "👁️" : "👁️‍🗨️"}
+                </button>
+              </div>
+              {errors.password && (
+                <span className="error-text">
+                  <span className="error-dot">●</span>
+                  {errors.password}
+                </span>
+              )}
+            </div>
+
+            {/* SUBMIT BUTTON */}
+            <button 
+              type="submit" 
+              className={`submit-btn ${loading ? "btn-loading" : ""}`}
+              disabled={loading}
+            >
+              {loading ? (
+                <>
+                  <span className="spinner"></span>
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  <span className="btn-icon">✨</span>
+                  Create Account
+                </>
+              )}
             </button>
           </form>
 
-          <p>
-            Already have an account? <Link to="/login">Login</Link>
-          </p>
+          {/* LOGIN LINK */}
+          <div className="auth-footer">
+            <p>
+              Already have an account?{" "}
+              <Link to="/login" className="signup-link">
+                Sign In
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
 

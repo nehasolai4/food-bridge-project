@@ -3,21 +3,24 @@ const mongoose = require("mongoose");
 const requestSchema = new mongoose.Schema({
   foodId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Food"
+    ref: "Food",
+    required: true
   },
   donorId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    ref: "User",
+    required: true
   },
   acceptorId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "User"
+    ref: "User",
+    required: true
   },
   status: {
     type: String,
-    default: "Pending"
+    default: "pending"
   },
-  requestedAt: {
+  createdAt: {
     type: Date,
     default: Date.now
   }
