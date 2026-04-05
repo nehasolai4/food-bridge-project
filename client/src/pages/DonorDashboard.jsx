@@ -64,12 +64,19 @@ const DonorDashboard = () => {
           style={{ cursor: "pointer" }}
           onClick={() => navigate("/")}
         >
-          FoodBridge
+          🍽️FoodBridge
         </h2>
 
         <ul>
           <li className="active">Dashboard</li>
-          <li>Donations</li>
+
+          <li
+            style={{ cursor: "pointer" }}
+            onClick={() => navigate("/donate-food")}
+          >
+            Donate Food
+          </li>
+
           <li>Requests</li>
           <li>Profile</li>
         </ul>

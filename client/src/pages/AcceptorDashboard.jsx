@@ -23,7 +23,13 @@ const AcceptorDashboard = () => {
     <div className="donor-dashboard">
       {/* SIDEBAR */}
       <div className="donor-sidebar">
-        <h2 className="donor-logo">🍱 FoodBridge</h2>
+            <h2
+              className="donor-logo"
+              style={{ cursor: "pointer" }}
+              onClick={() => navigate("/")}
+            >
+              FoodBridge
+            </h2>
 
         <ul>
           <li className="active">My Requests</li>

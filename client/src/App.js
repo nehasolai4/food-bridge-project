@@ -20,6 +20,7 @@ function App() {
         <Route path="/request-sent" element={<RequestSent />} />
         <Route path="/donor-dashboard" element={<DonorDashboard />} />
         <Route path="/acceptor-dashboard" element={<AcceptorDashboard />} />
+        <Route path="/donate-food" element={<DonateFood />} />
       </Routes>
     </Router>
   );
