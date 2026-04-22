@@ -49,6 +49,7 @@ This project was developed as a team project.
 | Frontend | HTML, CSS, JavaScript       |
 | Backend  | Node.js, Express.js         |
 | Database | MongoDB (via Mongoose)      |
+| Auth     | JWT-based authentication    |
 
 ---
 
